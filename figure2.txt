@@ -1,0 +1,30 @@
+##Figure2-a
+rm(list = ls())
+data_decline<-read.csv('category-decline.csv',header = T)
+#logistic model
+model_decline<-glm(decline~Age+Sex+Edu+BMI+Cognitive impairment at 6months+Dilirium+Hypertension+Diabetes+Hypercholesteremia+Stroke+Coronary Heart Disease+COPD+Group,data=data_decline,family = binomial())
+#forestplot
+data<-read.csv("Category conversion - Decline.csv",header =T)
+tabletext <- cbind(c(NA,data$X),c("OR(95%CI)",data$OR.95.CI.),c("P value",data$p.value))
+cairo_pdf("category-decline.pdf",width =7,height =14)
+forestplot(labeltext=tabletext, graph.pos=3,mean=c(NA,data$mean),lower=c(NA,data$low),upper=c(NA,data$high),boxsize=0.3,graphwidth = unit(.3,"npc"),col=fpColors(box="#1c61b6", lines="black", zero = "gray60"),lwd.xaxis=2,xlog=T,clip=c(0.25,4),xticks=log(c(0.25,0.5,1,2,4)),zero=NA,lwd.zero=2,xlab="Category conversion - Cognitive Decline",hrzl_lines=list("2"=gpar(lwd=2,columns=c(1:4),col="black"),"40"=gpar(lwd=2,columns=c(1:4),col="black")),txt_gp=fpTxtGp(label=gpar(cex=1),ticks=gpar(cex=1),xlab=gpar(cex = 1)),lineheight = unit(0.7,"cm"),colgap = unit(0.5,"cm"),is.summary=c(T,rep(F,39)),align=c("l",rep("l",3)),grid=structure(c(1),gp=gpar(col='black',lty=2,lwd=1)))
+dev.off()
+
+##Figure2-b
+rm(list = ls())
+data_progressive<-read.csv('Cognitive progressive.csv',header = T)
+#logistic model
+model_progressive<-glm(progressive~Age+Sex+Edu+BMI+Cognitive impairment at 6months+Dilirium+Hypertension+Diabetes+Hypercholesteremia+Stroke+Coronary Heart Disease+COPD+Group,data=data_progressive,family = binomial())
+#forestplot
+data<-read.csv("progressive.csv",header =T)
+data$p.value[4]<-sprintf('%.2f',0.2)
+data$p.value[7]<-sprintf('%.2f',0.2)
+data$p.value[22]<-sprintf('%.2f',0.1)
+tabletext <- cbind(c(NA,data$X),c("OR(95%CI)",data$OR.95.CI.),c("P value",data$p.value))
+cairo_pdf("progressive-1.pdf",width =7,height =14)
+forestplot(labeltext=tabletext, graph.pos=3,mean=c(NA,data$mean),lower=c(NA,data$low),upper=c(NA,data$high),boxsize=0.3,graphwidth = unit(.3,"npc"),col=fpColors(box="#1c61b6", lines="black", zero = "gray60"),lwd.xaxis=2,xlog=T,clip=c(0.25,4),xticks=log(c(0.25,0.5,1,2,4)),zero=NA,lwd.zero=2,xlab="Progressive decline",hrzl_lines=list("2"=gpar(lwd=2,columns=c(1:4),col="black"),"40"=gpar(lwd=2,columns=c(1:4),col="black")),txt_gp=fpTxtGp(label=gpar(cex=1),ticks=gpar(cex=1),xlab=gpar(cex = 1)),lineheight = unit(0.7,"cm"),colgap = unit(0.5,"cm"),is.summary=c(T,rep(F,42)),align=c("l",rep("l",3)),grid=structure(c(1),gp=gpar(col='black',lty=2,lwd=1)))
+dev.off()
+
+
+
+
