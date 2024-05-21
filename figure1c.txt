@@ -1,0 +1,49 @@
+rm(list = ls())
+library(ggplot2)
+library(rms)
+library(lmerTest)
+library(emmeans)
+library(optimx)
+library(forestplot)
+data<-read.csv('TICS-30m.csv',header = T)
+colnames(data)[1:22]
+for (i in names(data)[c(2,3,7:17)]){data[,i] <- as.factor(data[,i])}
+for (i in names(data)[c(4,5,6,19:22)]){data[,i] <- as.numeric(data[,i])}
+data$Group<-as.factor(data$Group)
+
+
+#Figure1-C
+ggplot(data,aes(x=time,y=tics,group=Group,color=Group))+geom_smooth(aes(fill=Group),method='lm',formula = y~rcs(x,c(6,12,30)),se=T,alpha=0.2)+theme_classic(base_line_size = 1)+labs( x = "Months of Follow-up", y = "Estimates of Change in TICS-40")+scale_x_continuous(breaks =c(6, 12, 30), labels = c(6,12,30))+scale_y_continuous(breaks=seq(-4,2,1),labels =seq(-4,2,1))+labs(color="Group")+scale_color_manual(values = c("#00A1D5FF", "#DF8F44FF", "#374E55FF"),labels=c("Control","Non-severe","Severe"))+coord_cartesian(ylim = c(-4,2),xlim = c(6,30))+theme(panel.grid.major.y =  element_line(),axis.title.y = element_text(size = 20,color = "black", face = "bold",vjust = 1.9,hjust = 0.5,angle = 90),axis.title.x = element_text(size = 20,color = "black", face = "bold",vjust = 0.5,hjust = 0.5,angle = 0),legend.title = element_text(color="black", size=15,face="bold"),legend.text = element_text(color="black",size = 15,face = "bold"),axis.text.x = element_text(size = 16, color = "black", face = "bold",vjust = 0.5, hjust = 0.5,angle =0),axis.text.y = element_text(size = 16,color = "black",face = "bold",vjust = 0.5,hjust = 0.5,angle = 0),axis.ticks.length = unit(0.2,'cm'),plot.margin = unit(c(1,1,1,1), "cm"))+scale_fill_manual(values = c("#00A1D5FF", "#DF8F44FF", "#374E55FF"),labels=c("Control","Non-severe","Severe"))
+#save the picture
+ggsave("figure1c.pdf",height=6,width=10,units="in",dpi=300)
+
+## linear mixed-effects models
+data2<-subset(data,data$Group==1 | data$Group==2)
+data3<-subset(data,data$Group==2 | data$Group==0)
+data4<-subset(data,data$Group==1 | data$Group==0)
+
+tics2_raw<-lmer(tics~timey*Group+ticsbase+(1|ID),data=data2,control=lmerControl(optimizer="optimx", optCtrl=list(method='nlminb')))
+tics2_adjust<-lmer(tics~timey*Group+ticsbase+age+sex+edu+BMI+Dilirium+HP+DM+HL+Stroke+CVD+COPD+(1|ID),data=data2,control=lmerControl(optimizer="optimx", optCtrl=list(method='nlminb')))
+
+tics3_raw<-lmer(tics~timey*Group+ticsbase+(1|ID),data=data3,control=lmerControl(optimizer="optimx", optCtrl=list(method='nlminb')))
+tics3_adjust<-lmer(tics~timey*Group+ticsbase+age+sex+edu+BMI+Dilirium+HP+DM+HL+Stroke+CVD+COPD+(1|ID),data=data3,control=lmerControl(optimizer="optimx", optCtrl=list(method='nlminb')))
+
+tics4_raw<-lmer(tics~timey*Group+ticsbase+(1|ID),data=data4,control=lmerControl(optimizer="optimx", optCtrl=list(method='nlminb')))
+tics4_adjust<-lmer(tics~timey*Group+ticsbase+age+sex+edu+BMI+Dilirium+HP+DM+HL+Stroke+CVD+COPD+(1|ID),data=data4,control=lmerControl(optimizer="optimx", optCtrl=list(method='nlminb')))
+
+table2a<-data.frame(fixef(tics2_raw))[c(2,3,5),]
+table2b<-data.frame(confint(tics2_raw,method="Wald"))[c(4,5,7),]
+table3a<-data.frame(fixef(tics3_raw))[c(2,3,5),]
+table3b<-data.frame(confint(tics3_raw,method="Wald"))[c(4,5,7),]
+table4a<-data.frame(fixef(tics4_raw))[c(2,3,5),]
+table4b<-data.frame(confint(tics4_raw,method="Wald"))[c(4,5,7),]
+table<-cbind(table2a,table2b,table3a,table3b,table4a,table4b)
+table2_1a<-data.frame(fixef(tics2_adjust))[c(2,3,16),]
+table2_1b<-data.frame(confint(tics2_adjust,method="Wald"))[c(4,5,18),]
+table3_1a<-data.frame(fixef(tics3_adjust))[c(2,3,16),]
+table3_1b<-data.frame(confint(tics3_adjust,method="Wald"))[c(4,5,18),]
+table4_1a<-data.frame(fixef(tics4_adjust))[c(2,3,16),]
+table4_1b<-data.frame(confint(tics4_adjust,method="Wald"))[c(4,5,18),]
+table_1<-cbind(table2_1a,table2_1b,table3_1a,table3_1b,table4_1a,table4_1b)
+write.csv(table,'rawtable.csv')
+write.csv(table_1,'adjusttable.csv')
